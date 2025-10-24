@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Digit — P2P Micro-Lending Mockup (Upgraded)</title>
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --card:#ffffff;
+    --primary:#1f6feb;
+    --accent:#0b66ff;
+    --muted:#6b7280;
+    --dark:#0f1724;
+    --glass:rgba(255,255,255,0.6);
+    --phone-bg:#0b1220;
+    --phone-surface:#0f1724;
+    --success:#16a34a;
+    --warn:#f59e0b;
+    --danger:#ef4444;
+    --trans-speed:360ms;
+  }
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,#f6f8fb 0%, #eef3fb 100%); color:var(--dark);}
+  .container{max-width:1200px;margin:28px auto;padding:20px;display:grid;grid-template-columns:1fr 540px;gap:28px;align-items:start;}
+  header{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .brand{font-weight:800;font-size:28px;color:var(--dark);} nav.toplinks a{margin-left:16px;color:var(--muted);text-decoration:none;font-weight:600}
+  h1{font-size:40px;margin:6px 0 8px;color:var(--dark)}
+  p.lead{margin:0 0 18px;color:var(--muted);font-size:15px}
+
+  .controls{display:flex;gap:10px;align-items:center}
+  .role-toggle{display:flex;gap:6px;background:var(--card);padding:6px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,36,0.04)}
+  .role-toggle button{border:0;background:transparent;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:700}
+  .role-toggle button.active{background:linear-gradient(90deg,var(--primary),var(--accent));color:white}
+
+  .cta{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,36,0.06);display:flex;align-items:center;justify-content:space-between}
+  .cta button{background:var(--primary);border:none;color:white;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer}
+  .cta .note{color:var(--muted);font-size:13px}
+
+  /* Phone mockup */
+  .phone-wrap{position:relative;display:flex;justify-content:center;align-items:center}
+  .phone-frame{width:360px;height:740px;border-radius:36px;padding:18px;background:linear-gradient(180deg,#0b1220, #0f1724);box-shadow:0 20px 60px rgba(7,10,25,0.35);position:relative;overflow:hidden;border:10px solid #0b1220}
+  .notch{position:absolute;left:50%;transform:translateX(-50%);top:8px;width:160px;height:28px;border-radius:12px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px}
+  .screen{width:100%;height:100%;border-radius:20px;background:linear-gradient(180deg,var(--phone-bg), #071022);color:white;padding:18px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;transition:all var(--trans-speed) ease}
+
+  .top-row{display:flex;justify-content:space-between;align-items:center}
+  .hambtn{background:transparent;border:0;color:rgba(255,255,255,0.9);font-size:18px;cursor:pointer}
+  .avatar{width:36px;height:36px;border-radius:999px;background:linear-gradient(90deg,#2da0ff,#6b8cff);display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+
+  .ui-screen{display:none;flex-direction:column;gap:12px;flex:1;opacity:0;transform:translateY(8px);transition:opacity .28s ease, transform .28s ease}
+  .ui-screen.active{display:flex;opacity:1;transform:translateY(0)}
+
+  .title{font-size:22px;font-weight:800}
+  .subtitle{color:rgba(255,255,255,0.85);font-size:13px}
+
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));padding:12px;border-radius:12px;margin-top:6px}
+  .amount{font-weight:800;font-size:34px}
+  .slider-wrap{display:flex;flex-direction:column;gap:8px}
+  input[type="range"]{width:100%}
+  .options{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .option{display:flex;gap:10px;align-items:center}
+  .btn-primary{background:var(--accent);border:0;padding:12px;border-radius:10px;color:white;font-weight:700;cursor:pointer;width:100%}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:10px;border-radius:8px;color:rgba(255,255,255,0.9);cursor:pointer}
+
+  .bottom-nav{display:flex;justify-content:space-around;gap:6px;padding-top:6px}
+  .bottom-nav button{background:transparent;border:0;color:rgba(255,255,255,0.85);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+  .bottom-nav button.active{color:var(--accent)}
+
+  .side-menu{position:fixed;left:0;top:0;bottom:0;width:320px;background:linear-gradient(180deg,#0c1220,#071022);color:white;padding:28px 18px;transform:translateX(-105%);transition:transform .36s cubic-bezier(.2,.9,.3,1);z-index:60;box-shadow: 10px 0 40px rgba(2,6,23,0.6)}
+  .side-menu.open{transform:translateX(0)}
+  .side-menu h3{margin-top:0}
+  .side-menu nav a{display:block;padding:10px 8px;border-radius:8px;color:rgba(255,255,255,0.9);text-decoration:none;margin-bottom:8px}
+  .side-menu nav a:hover{background:rgba(255,255,255,0.03)}
+
+  .mini{width:120px;height:180px;background:white;border-radius:12px;padding:12px;box-shadow:0 8px 30px rgba(2,6,23,0.06);display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+  .mini h4{margin:0;font-size:14px;color:var(--dark)}
+  .mini p{margin:0;color:var(--muted);font-size:12px}
+
+  .modal-back{position:fixed;inset:0;background:rgba(3,6,23,0.45);display:none;align-items:center;justify-content:center;z-index:80}
+  .modal-back.open{display:flex}
+  .modal{background:white;color:var(--dark);padding:18px;border-radius:12px;width:360px;box-shadow:0 40px 80px rgba(3,6,23,0.4)}
+  .muted{color:var(--muted);font-size:13px}
+  .chip{background:rgba(255,255,255,0.04);padding:6px 8px;border-radius:8px;font-weight:600}
+  footer{grid-column:1 / -1;text-align:center;color:var(--muted);margin-top:18px;font-size:13px}
+
+  /* matching animation visuals */
+  .match-progress{height:10px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;margin-top:8px}
+  .match-bar{height:100%;width:0;background:linear-gradient(90deg,#7dd3fc,#60a5fa);transition:width 800ms ease}
+
+  /* simple chart visuals for admin */
+  .metric-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .metric{background:var(--card);padding:10px;border-radius:10px;min-width:120px;box-shadow:0 6px 14px rgba(15,23,36,0.04)}
+  .spark{height:42px;width:100%;display:block}
+
+  /* animations */
+  @keyframes pulse {
+    0%{box-shadow:0 0 0 0 rgba(11,102,255,0.18)}
+    70%{box-shadow:0 0 0 14px rgba(11,102,255,0)}
+    100%{box-shadow:0 0 0 0 rgba(11,102,255,0)}
+  }
+  .pulse{animation:pulse 1.6s infinite}
+
+  @media (max-width:1024px){.container{grid-template-columns:1fr;gap:18px;padding:12px} .phone-wrap{order:-1;margin:0 auto}}
+</style>
+</head>
+<body>
+  <!-- Slide-in side menu -->
+  <div id="sideMenu" class="side-menu" aria-hidden="true" role="menu">
+    <h3>Digit — Menu</h3>
+    <p class="muted">Quick links & preconfigured options</p>
+    <nav>
+      <a href="#" data-screen="splash">Home / Splash</a>
+      <a href="#" data-screen="borrow">Borrow / Requests</a>
+      <a href="#" data-screen="messages">Messages</a>
+      <a href="#" data-screen="settings">Settings</a>
+      <a href="#" data-screen="profile">Profile</a>
+      <a href="#" data-screen="match">Matching Tool</a>
+      <a href="#" data-screen="lender">Lender View</a>
+      <a href="#" data-screen="admin">Admin Console</a>
+    </nav>
+
+    <hr style="border:none;height:1px;background:rgba(255,255,255,0.03);margin:14px 0">
+
+    <p class="muted">Preconfigured lender filters</p>
+    <nav>
+      <a href="#" data-filter="local">Only local lenders</a>
+      <a href="#" data-filter="lowrisk">Low-risk pool</a>
+      <a href="#" data-filter="career">Same industry lenders</a>
+    </nav>
+  </div>
+
+  <div class="container" role="main">
+    <header>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="brand">Digit</div>
+        <div style="font-size:13px;color:var(--muted)">Peer-to-Peer Micro-Lending</div>
+      </div>
+
+      <div class="controls">
+        <div class="role-toggle" role="tablist" aria-label="Select role">
+          <button id="roleBorrower" class="active" data-role="borrower">Borrower</button>
+          <button id="roleLender" data-role="lender">Lender</button>
+          <button id="roleAdmin" data-role="admin">Admin</button>
+        </div>
+        <div style="width:14px"></div>
+        <div class="cta">
+          <div>
+            <div class="note">Sim demo</div>
+            <div style="font-size:18px;font-weight:800">Demo Playback</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="playDemo">▶️ Play</button>
+            <button id="resetDemo" style="background:#e6eefc;border:0;padding:8px 10px;border-radius:8px;cursor:pointer">Reset</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <h1>Peer-to-Peer Lending for Gig Workers</h1>
+      <p class="lead">Interactive mockup with Borrower, Lender, and Admin views — demo walks through a full request → match → fund → admin approval flow.</p>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+        <div class="mini">
+          <h4>Interactive Mockup</h4>
+          <p>Test screens and demo playback</p>
+        </div>
+        <div class="mini">
+          <h4>Role Toggle</h4>
+          <p>Switch perspectives: Borrower / Lender / Admin</p>
+        </div>
+        <div class="mini">
+          <h4>Playback</h4>
+          <p>Auto-run the loan lifecycle</p>
+        </div>
+      </div>
+
+      <footer>Designed for prototyping — no real funds or network calls.</footer>
+    </section>
+
+    <aside class="phone-wrap" aria-label="Interactive phone mockup">
+      <div class="phone-frame" role="application" aria-roledescription="phone mockup">
+        <div class="notch">Digit</div>
+        <div class="screen" id="phoneScreen">
+          <div class="top-row">
+            <button id="hamburger" class="hambtn" aria-controls="sideMenu" aria-expanded="false">☰</button>
+            <div class="avatar" title="User">DJ</div>
+          </div>
+
+          <!-- UI screens inside the phone -->
+          <div id="uiContainer">
+            <!-- Splash -->
+            <div id="splash" class="ui-screen active" role="region" aria-label="Splash screen">
+              <div style="text-align:center;margin-top:22px">
+                <div style="font-weight:700;font-size:16px">Digit</div>
+                <div class="title">Borrow up to $500</div>
+                <div class="subtitle">Fast, peer-funded micro-loans tailored to gig income.</div>
+              </div>
+
+              <div style="width:100%;display:flex;gap:12px;padding:0 8px;margin-top:18px">
+                <button class="btn-primary" id="toBorrow">Borrow</button>
+                <button class="btn-ghost" id="toMatch">Matching Tool</button>
+              </div>
+            </div>
+
+            <!-- Borrow / Request -->
+            <div id="borrow" class="ui-screen" role="region" aria-label="Borrow screen">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div class="chip">Borrower • Verified</div>
+                  <div class="muted">Risk score: <strong id="riskScore">72</strong></div>
+                </div>
+
+                <div class="card" aria-hidden="false">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div class="muted">Borrow up to</div>
+                    <div class="amount" id="amount">$250</div>
+                  </div>
+
+                  <div class="slider-wrap">
+                    <input id="amtRange" type="range" min="20" max="500" value="250" step="10" aria-label="Select amount"/>
+                    <div style="display:flex;justify-content:space-between;color:rgba(255,255,255,0.55);font-size:12px">
+                      <span>$20</span><span>$500</span>
+                    </div>
+                  </div>
+
+                  <div class="options" role="group" aria-label="Expense purpose">
+                    <label class="option"><input type="radio" name="purpose" value="rent" checked /> <span style="margin-left:8px">Rent</span></label>
+                    <label class="option"><input type="radio" name="purpose" value="groceries" /> <span style="margin-left:8px">Groceries</span></label>
+                    <label class="option"><input type="radio" name="purpose" value="utilities" /> <span style="margin-left:8px">Utilities</span></label>
+                    <label class="option"><input type="radio" name="purpose" value="medical" /> <span style="margin-left:8px">Medical</span></label>
+                  </div>
+
+                  <div style="margin-top:12px;color:rgba(255,255,255,0.75);font-size:13px">
+                    <div><strong>Repayment:</strong> 1–8 weeks (linked to incoming gig deposits)</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:6px">Escrow & auto repayments reduce lender exposure. Diversified micro-loans and smart-matching cut risk.</div>
+                  </div>
+
+                  <div style="margin-top:12px;display:flex;gap:8px">
+                    <button id="requestLoan" class="btn-primary">Request Loan</button>
+                    <button id="quickDemoRequest" class="btn-ghost">Quick Demo Req</button>
+                  </div>
+
+                  <div class="match-progress" aria-hidden="true">
+                    <div id="matchBar" class="match-bar" style="width:0%"></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
+                  <div class="chip">Escrowed payouts</div>
+                  <div class="chip">Auto-repayment</div>
+                  <div class="chip">Diversified pools</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="messages" class="ui-screen" role="region" aria-label="Messages">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-weight:700">Messages</div>
+                  <div class="muted" id="msgCount">3 unread</div>
+                </div>
+                <div id="msgList" style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+                  <div class="card" style="padding:10px">
+                    <strong>Platform</strong>
+                    <div class="muted" style="font-size:13px">Verification complete. You can request up to $500.</div>
+                  </div>
+                  <div class="card" style="padding:10px" id="sampleLenderMsg">
+                    <strong>Jane (Lender)</strong>
+                    <div class="muted" style="font-size:13px">Happy to fund within local pool. Would you accept 4% fee?</div>
+                    <div style="margin-top:6px"><button class="btn-ghost" onclick="replySample('Thanks Jane — yes!')">Reply</button></div>
+                  </div>
+                  <div class="card" style="padding:10px">
+                    <strong>Support</strong>
+                    <div class="muted" style="font-size:13px">Link DoorDash/Upwork to improve risk score.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div id="settings" class="ui-screen" role="region" aria-label="Settings">
+              <div>
+                <div style="font-weight:700">Settings</div>
+                <div class="muted" style="margin-top:8px">Link income sources & configure notifications</div>
+
+                <div style="margin-top:10px" class="card">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>Linked Sources</div>
+                    <div class="muted" style="font-size:13px">3 linked</div>
+                  </div>
+                  <div style="margin-top:8px;display:flex;gap:8px">
+                    <button class="btn-ghost" onclick="alert('Simulated: Connect DoorDash')">Connect DoorDash</button>
+                    <button class="btn-ghost" onclick="alert('Simulated: Connect Upwork')">Connect Upwork</button>
+                  </div>
+                </div>
+
+                <div style="margin-top:10px" class="card">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>Notifications</div>
+                    <label style="display:flex;gap:8px;align-items:center">
+                      <input id="notifToggle" type="checkbox" checked aria-label="Notifications toggle" /> <span class="muted" style="font-size:13px">On</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div style="margin-top:10px" class="card">
+                  <div style="font-weight:700">Privacy & Risk</div>
+                  <div class="muted" style="margin-top:8px;font-size:13px">Digit shares only verification-derived scores with lenders; sensitive income data is not exposed.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile -->
+            <div id="profile" class="ui-screen" role="region" aria-label="Profile">
+              <div>
+                <div style="display:flex;gap:12px;align-items:center">
+                  <div style="width:64px;height:64px;border-radius:999px;background:linear-gradient(90deg,#2da0ff,#6b8cff);display:flex;align-items:center;justify-content:center;font-weight:800">DJ</div>
+                  <div>
+                    <div style="font-weight:800">Dana J — Driver</div>
+                    <div class="muted" style="font-size:13px">Verified • Score: <strong id="profileScore">72</strong></div>
+                  </div>
+                </div>
+
+                <div class="card" style="margin-top:10px">
+                  <div class="muted">Wallet balance</div>
+                  <div style="font-weight:800;font-size:20px">$380.25</div>
+                  <div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.6)">Auto-invest: <strong>On</strong> • APY: <strong>6.2%</strong></div>
+                </div>
+
+                <div style="margin-top:10px" class="card">
+                  <div style="font-weight:700">Loan History</div>
+                  <div class="muted" style="margin-top:6px">No active loans. 2 repaid loans.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Matching tool (demo) -->
+            <div id="match" class="ui-screen" role="region" aria-label="Matching tool">
+              <div>
+                <div style="font-weight:700">Matching Tool</div>
+                <div class="muted" style="margin-top:8px">Select lender filters to simulate matches</div>
+                <div class="card" style="margin-top:10px">
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button class="btn-ghost" onclick="simulateMatch('local')">Local Lenders</button>
+                    <button class="btn-ghost" onclick="simulateMatch('lowrisk')">Low-risk Pool</button>
+                    <button class="btn-ghost" onclick="simulateMatch('industry')">Same Industry</button>
+                  </div>
+                  <div id="matchResult" style="margin-top:10px;color:rgba(255,255,255,0.85)">No filters applied.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lender View -->
+            <div id="lender" class="ui-screen" role="region" aria-label="Lender view">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-weight:700">Lender Dashboard</div>
+                  <div class="muted">Balance: <strong>$1,240</strong></div>
+                </div>
+
+                <div class="card" style="margin-top:10px">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="font-weight:700">Open Requests</div>
+                    <div class="muted">3 pending</div>
+                  </div>
+
+                  <div id="openRequests" style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+                    <!-- sample request items -->
+                    <div class="card" style="padding:10px;display:flex;justify-content:space-between;align-items:center">
+                      <div>
+                        <div style="font-weight:700">$120 • Rent</div>
+                        <div class="muted" style="font-size:12px">Dana J — Driver • Risk 72</div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:6px">
+                        <button class="btn-primary" onclick="fundRequest(120,'Dana J')">Fund $120</button>
+                        <button class="btn-ghost" onclick="viewRequestDetail()">Details</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card" style="margin-top:10px">
+                  <div style="font-weight:700">Lender Stats</div>
+                  <div style="margin-top:8px" class="metric-row">
+                    <div class="metric"><div class="muted">Active Loans</div><div style="font-weight:800;font-size:18px">6</div></div>
+                    <div class="metric"><div class="muted">Avg APY</div><div style="font-weight:800;font-size:18px">7.1%</div></div>
+                    <div class="metric"><div class="muted">Funds Available</div><div style="font-weight:800;font-size:18px">$1,240</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Admin Console -->
+            <div id="admin" class="ui-screen" role="region" aria-label="Admin console">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-weight:700">Admin Console</div>
+                  <div class="muted">Live (simulated)</div>
+                </div>
+
+                <div class="card" style="margin-top:10px">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                      <div class="muted">Total Loans</div>
+                      <div style="font-weight:800;font-size:20px">1,842</div>
+                    </div>
+                    <div>
+                      <div class="muted">Default Rate</div>
+                      <div style="font-weight:800;font-size:20px;color:var(--warn)">2.4%</div>
+                    </div>
+                  </div>
+
+                  <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+                    <div style="flex:1">
+                      <div class="muted">Loan Volume (last 30d)</div>
+                      <!-- tiny sparkline using SVG -->
+                      <svg class="spark" viewBox="0 0 100 20" preserveAspectRatio="none">
+                        <polyline points="0,16 15,12 30,8 45,10 60,6 75,9 90,4 100,6" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </div>
+                    <div style="width:1px;height:48px;background:rgba(0,0,0,0.05)"></div>
+                    <div style="min-width:120px">
+                      <div class="muted">Pending Approvals</div>
+                      <div style="font-weight:800;font-size:18px" id="pendingApprovals">1</div>
+                    </div>
+                  </div>
+
+                  <div style="margin-top:10px">
+                    <button id="approvePayout" class="btn-primary" style="width:100%">Approve Next Payout</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- bottom nav -->
+          <div class="bottom-nav" role="tablist" aria-label="Phone navigation">
+            <button class="nav-btn active" data-target="splash" aria-selected="true"><span>🏠</span><span>Home</span></button>
+            <button class="nav-btn" data-target="borrow"><span>💸</span><span>Requests</span></button>
+            <button class="nav-btn" data-target="messages"><span>✉️</span><span>Messages</span></button>
+            <button class="nav-btn" data-target="match"><span>🔗</span><span>Match</span></button>
+            <button class="nav-btn" data-target="profile"><span>👤</span><span>Profile</span></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- modal for request confirmation -->
+  <div id="modalBack" class="modal-back" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document">
+      <div style="font-weight:800">Request Loan</div>
+      <div class="muted" id="modalSummary" style="margin-top:10px">You're requesting $250 for Rent. This demonstrates a simulated request flow.</div>
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div class="muted">Service fees ~0.5% - 2%</div>
+        <div>
+          <button onclick="confirmLoan()" class="btn-primary">Confirm</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;text-align:right">
+        <button class="btn-ghost" onclick="closeModal()" style="background:transparent;border:0;color:var(--muted);cursor:pointer">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* Core UI elements */
+  const sideMenu = document.getElementById('sideMenu');
+  const openSide = document.getElementById('openSide');
+  const hamburger = document.getElementById('hamburger');
+  const uiContainer = document.getElementById('uiContainer');
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const screenEls = document.querySelectorAll('.ui-screen');
+  const amtRange = document.getElementById('amtRange');
+  const amountDisplay = document.getElementById('amount');
+  const requestLoanBtn = document.getElementById('requestLoan');
+  const modalBack = document.getElementById('modalBack');
+  const modalSummary = document.getElementById('modalSummary');
+  const toBorrow = document.getElementById('toBorrow');
+  const toMatch = document.getElementById('toMatch');
+  const matchBar = document.getElementById('matchBar');
+  const playDemo = document.getElementById('playDemo');
+  const resetDemo = document.getElementById('resetDemo');
+
+  /* Role buttons */
+  const roleBorrower = document.getElementById('roleBorrower');
+  const roleLender = document.getElementById('roleLender');
+  const roleAdmin = document.getElementById('roleAdmin');
+
+  /* Admin elements */
+  const approvePayout = document.getElementById('approvePayout');
+  const pendingApprovals = document.getElementById('pendingApprovals');
+
+  /* Lender elements */
+  const openRequests = document.getElementById('openRequests');
+
+  /* Messages */
+  const msgList = document.getElementById('msgList');
+  const msgCount = document.getElementById('msgCount');
+
+  /* Simulated state */
+  let demoTimer = null;
+  let demoStage = 0;
+  let simulatedRequest = null;
+  let pendingApprovalCount = 1;
+
+  /* Utilities */
+  function openMenu(){ sideMenu.classList.add('open'); sideMenu.setAttribute('aria-hidden','false'); hamburger.setAttribute('aria-expanded','true'); }
+  function closeMenu(){ sideMenu.classList.remove('open'); sideMenu.setAttribute('aria-hidden','true'); hamburger.setAttribute('aria-expanded','false'); }
+  openSide && openSide.addEventListener('click', ()=> sideMenu.classList.contains('open')?closeMenu():openMenu());
+  hamburger && hamburger.addEventListener('click', ()=> sideMenu.classList.contains('open')?closeMenu():openMenu());
+
+  // side menu links navigate the phone screens
+  sideMenu.querySelectorAll('a[data-screen]').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const sc = a.getAttribute('data-screen');
+      selectScreen(sc);
+      closeMenu();
+    });
+  });
+
+  sideMenu.querySelectorAll('a[data-filter]').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const f = a.getAttribute('data-filter');
+      simulateMatch(f);
+    });
+  });
+
+  // bottom nav
+  navBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      navBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      selectScreen(btn.getAttribute('data-target'));
+    });
+  });
+
+  function selectScreen(id){
+    screenEls.forEach(s=>s.classList.remove('active'));
+    const el = document.getElementById(id);
+    if(el) el.classList.add('active');
+    // sync bottom nav
+    navBtns.forEach(b=>{
+      if(b.getAttribute('data-target')===id){
+        navBtns.forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      }
+    });
+  }
+
+  // role toggle handlers
+  function setRole(role){
+    [roleBorrower, roleLender, roleAdmin].forEach(b=>b.classList.remove('active'));
+    if(role==='borrower') roleBorrower.classList.add('active');
+    if(role==='lender') roleLender.classList.add('active');
+    if(role==='admin') roleAdmin.classList.add('active');
+
+    // quick view switch: map role -> screen
+    if(role==='borrower') selectScreen('borrow');
+    if(role==='lender') selectScreen('lender');
+    if(role==='admin') selectScreen('admin');
+  }
+  roleBorrower.addEventListener('click', ()=> setRole('borrower'));
+  roleLender.addEventListener('click', ()=> setRole('lender'));
+  roleAdmin.addEventListener('click', ()=> setRole('admin'));
+
+  // range updates
+  amtRange && amtRange.addEventListener('input', ()=> amountDisplay.textContent = '$' + amtRange.value);
+
+  // Modal and request flow
+  requestLoanBtn && requestLoanBtn.addEventListener('click', ()=> {
+    const amount = amtRange.value;
+    const purpose = document.querySelector('input[name="purpose"]:checked').value;
+    modalSummary.textContent = `You're requesting $${amount} for ${purpose}. This is a simulated flow showcasing escrow, smart matching, and income-linked repayment options.`;
+    openModal();
+  });
+
+  function openModal(){ modalBack.classList.add('open'); modalBack.setAttribute('aria-hidden','false'); }
+  function closeModal(){ modalBack.classList.remove('open'); modalBack.setAttribute('aria-hidden','true'); }
+  function confirmLoan(){
+    closeModal();
+    const amount = amtRange.value;
+    const purpose = document.querySelector('input[name="purpose"]:checked').value;
+    simulateCreateRequest({amount: Number(amount), purpose});
+  }
+
+  modalBack.addEventListener('click', (e)=>{ if(e.target===modalBack) closeModal(); });
+
+  // Quick demo request (creates request without modal)
+  document.getElementById('quickDemoRequest').addEventListener('click', ()=> {
+    const amount = amtRange.value;
+    const purpose = document.querySelector('input[name="purpose"]:checked').value;
+    simulateCreateRequest({amount: Number(amount), purpose});
+  });
+
+  function simulateCreateRequest(req){
+    // create simulated request state
+    simulatedRequest = {
+      id: 'r-' + Date.now(),
+      borrower: 'Dana J',
+      amount: req.amount,
+      purpose: req.purpose,
+      status: 'requested',
+      createdAt: new Date()
+    };
+    // show short toast (alert replacement)
+    addMessage(`Request created: $${req.amount} for ${req.purpose}. Smart-matching starting.`);
+    // update lender view: add to open requests list
+    renderOpenRequests();
+    // auto-run matching progress
+    runMatchingProgress();
+  }
+
+  function addMessage(text){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.padding = '10px';
+    card.innerHTML = `<strong>System</strong><div class="muted" style="font-size:13px;margin-top:6px">${text}</div>`;
+    msgList.prepend(card);
+    // increment unread count
+    const current = parseInt(msgCount.textContent) || 0;
+    msgCount.textContent = (current + 1) + ' unread';
+  }
+
+  function renderOpenRequests(){
+    openRequests.innerHTML = '';
+    if(simulatedRequest && simulatedRequest.status === 'requested'){
+      const item = document.createElement('div');
+      item.className = 'card';
+      item.style.padding = '10px';
+      item.style.display = 'flex';
+      item.style.justifyContent = 'space-between';
+      item.style.alignItems = 'center';
+      item.innerHTML = `<div><div style="font-weight:700">$${simulatedRequest.amount} • ${simulatedRequest.purpose}</div><div class="muted" style="font-size:12px">${simulatedRequest.borrower} • Risk 72</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn-primary" onclick="fundRequest(${simulatedRequest.amount},'${simulatedRequest.borrower}')">Fund $${simulatedRequest.amount}</button>
+          <button class="btn-ghost" onclick="viewRequestDetail()">Details</button>
+        </div>`;
+      openRequests.appendChild(item);
+    } else {
+      openRequests.innerHTML = `<div class="muted">No open requests at the moment.</div>`;
+    }
+  }
+
+  function viewRequestDetail(){ alert('Simulated: request details view (demo).'); }
+
+  // Simulated lender funding action
+  function fundRequest(amount, borrower){
+    if(!simulatedRequest) return alert('No simulated request to fund.');
+    // animate matchBar filling
+    matchBar.style.width = '100%';
+    simulatedRequest.status = 'funded_by_lender';
+    addMessage(`Lender funded $${amount} for ${borrower}. Awaiting admin approval.`);
+    // update lender view UI quickly
+    renderOpenRequests();
+    // notify admin (pending approval increment)
+    pendingApprovalCount++;
+    pendingApprovals.textContent = pendingApprovalCount;
+  }
+
+  // Matching progress animation
+  function runMatchingProgress(){
+    matchBar.style.width = '0%';
+    // small staged animation to 60% then pause, then 100% when fund happens
+    setTimeout(()=> matchBar.style.width = '60%', 200);
+    // after a short time, simulate lenders found and one funds
+    setTimeout(()=> {
+      addMessage('Matching complete: lenders notified. One lender is funding the request.');
+      matchBar.style.width = '90%';
+      // simulate funding automatically in demo if playback is active
+      if(demoStage > 0){ setTimeout(()=> fundRequest(simulatedRequest.amount, simulatedRequest.borrower), 900); }
+    }, 1800);
+  }
+
+  // Demo playback sequence (medium speed ~12s)
+  playDemo.addEventListener('click', ()=> {
+    if(demoTimer) return; // already running
+    demoStage = 1;
+    setRole('borrower'); // start as borrower
+    // Step 1: create a request
+    simulateCreateRequest({amount: 180, purpose: 'Rent'});
+    // Step 2: after 2s, show matching screen
+    demoTimer = setTimeout(()=> {
+      demoStage = 2;
+      selectScreen('match');
+      simulateMatch('local');
+    }, 2300);
+    // Step 3: after 5s, show lender notification and funding
+    demoTimer = setTimeout(()=> {
+      demoStage = 3;
+      setRole('lender');
+      // automatically fund
+      if(simulatedRequest) fundRequest(simulatedRequest.amount, simulatedRequest.borrower);
+      selectScreen('lender');
+    }, 5000);
+    // Step 4: after 8.5s, admin approves
+    demoTimer = setTimeout(()=> {
+      demoStage = 4;
+      setRole('admin');
+      selectScreen('admin');
+      // admin approve button animation
+      approvePayout.classList.add('pulse');
+      setTimeout(()=> { approvePayout.classList.remove('pulse'); approvePayout.click(); }, 1200);
+    }, 8500);
+    // Step 5: after 11s, borrower sees funded
+    demoTimer = setTimeout(()=> {
+      demoStage = 5;
+      setRole('borrower');
+      selectScreen('messages');
+      addMessage(`Loan funded: $${simulatedRequest.amount} — funds escrowed and payout approved.`);
+      // mark funded state
+      if(simulatedRequest) simulatedRequest.status = 'funded';
+      matchBar.style.width = '100%';
+      // cleanup
+      demoStage = 0;
+      demoTimer = null;
+    }, 11000);
+  });
+
+  resetDemo.addEventListener('click', ()=> {
+    // reset simulated state
+    simulatedRequest = null;
+    matchBar.style.width = '0%';
+    msgList.innerHTML = `<div class="card" style="padding:10px"><strong>Platform</strong><div class="muted" style="font-size:13px">Verification complete. You can request up to $500.</div></div>`;
+    msgCount.textContent = '1 unread';
+    pendingApprovalCount = 1;
+    pendingApprovals.textContent = pendingApprovalCount;
+    renderOpenRequests();
+    if(demoTimer){ clearTimeout(demoTimer); demoTimer = null; demoStage = 0;}
+    addMessage('Demo reset.');
+  });
+
+  // Admin approve action
+  approvePayout.addEventListener('click', ()=> {
+    if(!simulatedRequest || simulatedRequest.status !== 'funded_by_lender'){
+      alert('No pending funded requests to approve (simulated).');
+      return;
+    }
+    // simulate payout approval
+    addMessage(`Admin approved payout for request $${simulatedRequest.amount}. Funds are being released from escrow.`);
+    simulatedRequest.status = 'approved';
+    pendingApprovalCount = Math.max(0, pendingApprovalCount - 1);
+    pendingApprovals.textContent = pendingApprovalCount;
+    // notify borrower
+    setTimeout(()=> {
+      addMessage(`Funds released to borrower: $${simulatedRequest.amount}.`);
+      simulatedRequest.status = 'funded';
+      renderOpenRequests();
+    }, 900);
+  });
+
+  // simulateMatch for matching tool
+  function simulateMatch(filter){
+    const el = document.getElementById('matchResult');
+    if(filter==='local') el.textContent = 'Matched with 4 local lenders — est. funding 1-3 hours (sim).';
+    else if(filter==='lowrisk') el.textContent = 'Matched with low-risk lender pool — lower fees.';
+    else if(filter==='industry') el.textContent = 'Found same-industry lenders — higher social accountability.';
+    else el.textContent = 'No filters applied.';
+    selectScreen('match');
+  }
+
+  // helper reply
+  function replySample(text){ addMessage(`Reply sent: ${text}`); }
+
+  // keyboard accessibility
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape'){
+      if(sideMenu.classList.contains('open')) closeMenu();
+      if(modalBack.classList.contains('open')) closeModal();
+    }
+  });
+
+  // initial small simulation for risk score updates
+  function updateRiskScore(){
+    const linked = 3;
+    const wallet = 380;
+    const base = 50 + Math.min(30, linked*6) + Math.min(20, Math.floor(wallet/100));
+    document.getElementById('riskScore').textContent = base;
+    document.getElementById('profileScore').textContent = base;
+  }
+  updateRiskScore();
+  renderOpenRequests();
+
+  // mini card clicks (preview)
+  document.querySelectorAll('.mini').forEach((m,i)=> m.addEventListener('click', ()=> selectScreen(['splash','borrow','settings'][i] || 'splash')));
+
+  // CTA links
+  toBorrow && toBorrow.addEventListener('click', ()=> selectScreen('borrow'));
+  toMatch && toMatch.addEventListener('click', ()=> selectScreen('match'));
+</script>
+</body>
+</html>
